@@ -1,0 +1,149 @@
+# Princess-elfa
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Princess Elfa Rescue</title>
+<style>
+body { margin:0; overflow:hidden; background:#87CEEB; font-family:monospace; text-align:center;}
+canvas { background:#5c94fc; display:block; margin:auto; }
+#ui { position:absolute; top:10px; left:50%; transform:translateX(-50%); color:white; font-size:18px;}
+button { font-size:18px; padding:10px 20px; margin:10px; }
+#mobileControls { position:absolute; bottom:10px; width:100%; text-align:center;}
+.controlBtn { font-size:30px; padding:15px 25px; }
+</style>
+</head>
+<body>
+
+<div id="ui">Dragon Health: <span id="health">3</span></div>
+<canvas id="game"></canvas>
+
+<div id="mobileControls">
+<button class="controlBtn" id="left">⬅️</button>
+<button class="controlBtn" id="jump">⬆️</button>
+<button class="controlBtn" id="right">➡️</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+canvas.width = 400;
+canvas.height = 300;
+
+let player = {x:50,y:220,w:30,h:30,vy:0,onGround:false};
+let dragon = {x:300,y:220,w:40,h:40,health:3};
+let gravity = 0.8;
+let keys = {};
+let gameWon = false;
+
+document.addEventListener("keydown", e=>keys[e.key]=true);
+document.addEventListener("keyup", e=>keys[e.key]=false);
+
+document.getElementById("left").ontouchstart=()=>keys["ArrowLeft"]=true;
+document.getElementById("left").ontouchend=()=>keys["ArrowLeft"]=false;
+document.getElementById("right").ontouchstart=()=>keys["ArrowRight"]=true;
+document.getElementById("right").ontouchend=()=>keys["ArrowRight"]=false;
+document.getElementById("jump").ontouchstart=()=>keys[" "]=true;
+document.getElementById("jump").ontouchend=()=>keys[" "]=false;
+
+function drawCastle(){
+ctx.fillStyle="#654321";
+ctx.fillRect(250,160,100,80);
+ctx.fillStyle="#999";
+ctx.fillRect(260,130,20,30);
+ctx.fillRect(310,130,20,30);
+}
+
+function update(){
+if(gameWon) return;
+
+if(keys["ArrowRight"]) player.x+=3;
+if(keys["ArrowLeft"]) player.x-=3;
+
+if(keys[" "] && player.onGround){
+player.vy=-12;
+player.onGround=false;
+}
+
+player.vy+=gravity;
+player.y+=player.vy;
+
+if(player.y>=220){
+player.y=220;
+player.vy=0;
+player.onGround=true;
+}
+
+if(player.x<dragon.x+dragon.w &&
+player.x+player.w>dragon.x &&
+player.y<dragon.y+dragon.h &&
+player.y+player.h>dragon.y){
+
+if(player.vy>0){
+dragon.health--;
+document.getElementById("health").innerText=dragon.health;
+player.vy=-8;
+
+if(dragon.health<=0){
+gameWon=true;
+setTimeout(showProposal,1000);
+}
+}
+}
+}
+
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+drawCastle();
+
+// ground
+ctx.fillStyle="#228B22";
+ctx.fillRect(0,250,400,50);
+
+// player
+ctx.fillStyle="black";
+ctx.fillRect(player.x,player.y,player.w,player.h);
+
+// dragon
+if(dragon.health>0){
+ctx.fillStyle="red";
+ctx.fillRect(dragon.x,dragon.y,dragon.w,dragon.h);
+}
+
+requestAnimationFrame(loop);
+}
+
+function loop(){
+update();
+draw();
+}
+loop();
+
+function showProposal(){
+document.body.innerHTML = `
+<h1>You saved Princess Elfa! 💕</h1>
+<h2>Princess Elfa… will you be my Valentine?</h2>
+<button onclick="yes()">YES 💖</button>
+<button onclick="no()">NO 😢</button>
+`;
+}
+
+function yes(){
+document.body.innerHTML = `
+<h1>YAYYYYY YOU!!! 💕💕💕</h1>
+<h2>I'm so freaking happy!!</h2>
+<h1>💋💖💋💖💋</h1>
+`;
+}
+
+function no(){
+document.body.innerHTML = `
+<h1>😭 Pleaseeeeeee Princess Elfa 😭</h1>
+<h2>I fought a DRAGON for you!!!</h2>
+<button onclick="yes()">Okay fine YES 💖</button>
+`;
+}
+</script>
+</body>
+</html>
